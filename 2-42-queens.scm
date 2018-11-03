@@ -20,6 +20,15 @@
 (define (n-row pos)
   (car pos))
 
+(define (accumulate op initial sequence)
+  (if (null? sequence)
+      initial
+      (op (car sequence)
+          (accumulate op initial (cdr sequence)))))
+
+(define (flatmap proc seq)
+  (accumulate append '() (map proc seq)))
+
 ;;(define (safe? kth-position positions) #t)
 
 (define (safe? col positions)
@@ -41,19 +50,20 @@
 (define (adjoin-position new-row col rest)
   (append rest (list (make-position new-row col))))
 
-(define (empty-board) null)
+(define empty-board '())
 
 (define (queens board-size)
   (define (queen-cols k) ;; k is the current column...really bad name
     (if (= k 0)
-        (list '())
+        (list empty-board)
         (filter
          (lambda (positions) (safe? k positions))
          (flatmap
           (lambda (rest-of-queens)
             (map (lambda (new-row)
+                   ;; we take (.., ((a1,a2), (b1,b2)),..0) and generate new permitations per each new (row,col)
                    (adjoin-position new-row k rest-of-queens))
-                 (enumerate-interval 1 board-size)))
+                 (enumerate-interval 1 board-size))) ;; for each row
           (queen-cols (- k 1))))))
   (queen-cols board-size))
 
